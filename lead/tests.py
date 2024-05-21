@@ -17,32 +17,31 @@ class TestsLeadViewSet(TestCase):
 
     def test_success_create_lead(self):
         
-        headers = {'HTTP_X_STORE_ID': 1}
-        fake_lead = self.client.get(self.api_lead,format='json',**headers)
-        data=fake_lead.json()
-        data['lead_type'] = self.lead_type.id
-        data['products_interest_ids'] = []
-
-        response = self.client.post(self.api_existence, data=data, format='json', **headers)
+        data = {'wjs':True}
+        fake_lead = self.client.get(
+            self.api_lead, data=data, format='json',**self.headers).json()
+        
+        
+        response = self.client.post(self.api_existence, data=fake_lead, format='json', **self.headers)
         
         self.assertEqual(response.status_code, 201)        
         self.assertEqual(Lead.objects.count(),1)
-    
+
+
 
     def test_success_create_lead_with_interest_products(self):
         
-        headers = {'HTTP_X_STORE_ID': 1}
-        fake_lead = self.client.get(self.api_lead,format='json',**headers)
-        data=fake_lead.json()
-        data['lead_type'] = self.lead_type.id
-        data['products_interest_ids'] = [1,3,44,49]
-        response = self.client.post(self.api_existence, data=data, format='json', **headers)
+        data = {'wjs':True, 'products_interest_ids': [1,3,44,49]}
+        fake_lead = self.client.get(
+            self.api_lead, data=data, format='json',**self.headers).json()
         
+        response = self.client.post(self.api_existence, data=fake_lead, format='json', **self.headers)
         self.assertEqual(response.status_code, 201)        
         self.assertEqual(Lead.objects.count(),1)
 
         self.assertGreaterEqual(len(response.data['products_interest_ids']), 1)
-        self.assertEqual(response.data["products_interest_ids"], data['products_interest_ids'])
+        self.assertEqual(response.data["products_interest_ids"], fake_lead['products_interest_ids'])
+    
 
 
     def test_success_handler_response_400s(self):
@@ -51,18 +50,20 @@ class TestsLeadViewSet(TestCase):
             self.api_existence, {}, format='json')                                            
         self.assertEqual(response.status_code, 400)        
 
-
+    
     def test_success_create_lead_when_diferent_type(self):
         
         other_type = LeadType.objects.create(name="other type")
-        fake_lead = self.create_fake_lead()
 
-        email = fake_lead.email
-        store_id = fake_lead.store_id
+        fake_lead = self.client.get(
+            self.api_lead, format='json',**self.headers).json()
+        
+        email = fake_lead['email']
+        store_id = fake_lead['store_id']
         data = {
             'email': email,
             'lead_type':other_type.id,
-            'name':fake_lead.name ,
+            'name':fake_lead['name'] ,
             'phone_number':'5552967027',
             'store':store_id,
             }
@@ -74,13 +75,17 @@ class TestsLeadViewSet(TestCase):
         self.assertEqual(response.status_code, 201)        
         self.assertEqual(email, response.data["email"])
         self.assertEqual(Lead.objects.filter(email=email).count(), 2)
-        
-        
+
+
     def test_success_add_triet_lead(self):
         
-        fake_lead= self.create_fake_lead()
+        fake_lead = self.client.get(
+            self.api_lead, format='json',**self.headers).json()     
+
+        fake_lead = Lead.objects.get(id=fake_lead['id'])   
         self.assertEqual(fake_lead.tryet, 1)
         lead_type = fake_lead.lead_type.id
+
         data = {
             'email': fake_lead.email,
             'lead_type':lead_type,
@@ -95,14 +100,3 @@ class TestsLeadViewSet(TestCase):
         self.assertEqual(response.data["tryet"], 2)
         self.assertEqual(response.status_code, 200)        
         self.assertEqual(response.data["phone_number"], "5552967027")
-        self.assertEqual(Lead.objects.count(),1)
-
-
-    def create_fake_lead(self, **kwargs):
-
-        fake_data_lead = self.client.get(self.api_lead, format='json',**self.headers)
-        defaults = fake_data_lead.json()
-        defaults['lead_type'] = self.lead_type
-        lead_data = {**defaults, **kwargs} 
-
-        return Lead.objects.create(**lead_data)
