@@ -23,9 +23,3 @@ class Lead(models.Model):
 
     def __str__(self):
         return self.name
-
-    def set_products_interest(self, product_ids):
-        self.products_interest_ids = ','.join(str(id) for id in product_ids)
-
-    def get_products_interest(self):
-        return [int(id) for id in self.products_interest_ids.split(',')] if self.products_interest_ids else []

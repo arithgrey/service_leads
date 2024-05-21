@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'lead_type',
     'lead',
-    'lead_search'
+    'lead_search',
+    'expose'
 ]
 
 SWAGGER_SETTINGS = {
