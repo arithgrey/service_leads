@@ -12,20 +12,21 @@ class LeadViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='existence')
     def existence(self, request):
         data = request.data
+        
         store_id = request.headers.get('X-Store-Id')                
         
         if store_id is None:
             return Response({'error': 'X-Store-Id header is missing'}, status=status.HTTP_400_BAD_REQUEST)
         
-        data['store'] = store_id
+        email = data.get('email')
         serializer = LeadSerializer(data=data)  
         if serializer.is_valid():            
-        
             email = data.get('email')
             name = data.get('name')
             phone_number = data.get('phone_number')
             lead_type =  data.get('lead_type')
-            products_interest_ids = data.get('products_interest', [])
+            products_interest_ids = data.get('products_interest_ids', [])
+
             
             defaults = {
                 'lead_type': LeadType.objects.get(id=lead_type),
@@ -33,12 +34,14 @@ class LeadViewSet(viewsets.ModelViewSet):
                 'phone_number':phone_number,
                 'email':email,
                 'store_id': store_id,
+                'products_interest_ids': products_interest_ids
                 }
-
+            
             lead, created = Lead.objects.get_or_create(email=email, defaults=defaults)
+
+           
             if created:     
-                
-                lead.products_interest.add(*products_interest_ids)                
+                serializer = LeadSerializer(lead)
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
                         
             else:
