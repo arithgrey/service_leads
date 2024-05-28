@@ -5,6 +5,8 @@ from lead import views
 router = DefaultRouter()
 router.register(r'', views.LeadViewSet, basename="lead")
 
+urlpatterns = router.urls
+
 urlpatterns = [
     path('', include(router.urls)),    
 ]
