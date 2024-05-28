@@ -1,5 +1,6 @@
 from django.db import models
 from lead_type.models import LeadType
+import json
 
 class Lead(models.Model):
     
@@ -23,3 +24,11 @@ class Lead(models.Model):
 
     def __str__(self):
         return self.name
+
+    def set_products_interest_ids(self, ids):
+        self.products_interest_ids = json.dumps(ids)
+
+    def get_products_interest_ids(self):
+        if self.products_interest_ids:
+            return json.loads(self.products_interest_ids)
+        return []
