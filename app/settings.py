@@ -30,6 +30,9 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='').split(',')
 
+FORCE_SCRIPT_NAME = '/api/lead'
+USE_X_FORWARDED_HOST = True
+
 CORS_ALLOW_HEADERS = [ 
     'X-Store-Id',
     'Content-Type',

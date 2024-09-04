@@ -27,3 +27,8 @@ class Lead(models.Model):
 
     def set_products_interest_ids(self, ids):
         self.products_interest_ids = json.dumps(ids)
+    
+    def get_products_interest_ids(self):
+        if self.products_interest_ids:
+            return json.loads(self.products_interest_ids)
+        return []
