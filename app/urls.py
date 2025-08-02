@@ -24,6 +24,7 @@ urlpatterns = [
     path('lead-type/', include('lead_type.urls')),
     path('lead/', include('lead.urls')),
     path('lead-search/', include('lead_search.urls')),
+    path('lead-metrics/', include('lead_metrics.urls')),
     path('expose-test/', include('expose.urls')),
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
