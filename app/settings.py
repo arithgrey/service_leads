@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'lead',
     'lead_search',
     'lead_metrics',
+    'page_analytics',
     'expose'
 ]
 
