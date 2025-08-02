@@ -104,38 +104,51 @@ class Command(BaseCommand):
                 minutes=minutes_back
             )
             
-            # Crear registro de PageAccess
-            page_access_data = {
-                'page_url': random.choice(urls),
-                'page_title': fake.sentence(nb_words=3),
-                'section': random.choice(sections) if random.random() > 0.3 else '',
-                'user_id': fake.uuid4() if random.random() > 0.7 else '',
-                'session_id': fake.uuid4(),
+            # Crear datos básicos
+            page_data = {
+                'page_url': fake.uri_path(),
+                'page_title': fake.sentence(),
+                'section': fake.random_element(elements=sections),
+                'user_id': fake.uuid4() if fake.boolean() else '',
+                'session_id': f"session_{fake.unix_time()}_{fake.pystr()}",
                 'user_agent': fake.user_agent(),
-                'device_type': random.choice(devices),
-                'browser': random.choice(browsers),
-                'os': random.choice(os_list),
-                'ip_address': fake.ipv4(),
+                'device_type': fake.random_element(elements=['desktop', 'mobile', 'tablet']),
+                'browser': fake.random_element(elements=['Chrome', 'Firefox', 'Safari', 'Edge', 'Opera']),
+                'os': fake.random_element(elements=['Windows', 'macOS', 'Linux', 'iOS', 'Android']),
+                'ip_address': fake.ipv4() if fake.boolean() else None,
                 'country': fake.country(),
                 'city': fake.city(),
-                'time_on_page': random.randint(10, 600),
-                'scroll_depth': random.randint(0, 100),
-                'interactions': random.randint(0, 20),
-                'referrer': random.choice(['', 'https://google.com', 'https://facebook.com', 'https://twitter.com']),
-                'utm_source': random.choice(['', 'google', 'facebook', 'twitter', 'email']),
-                'utm_medium': random.choice(['', 'cpc', 'social', 'email', 'organic']),
-                'utm_campaign': random.choice(['', 'summer_sale', 'new_products', 'brand_awareness']),
+                'time_on_page': fake.random_int(min=0, max=600),
+                'scroll_depth': fake.random_int(min=0, max=100),
+                'interactions': fake.random_int(min=0, max=20),
+                'referrer': fake.url() if fake.boolean() else '',
+                'utm_source': fake.random_element(elements=['google', 'facebook', 'twitter', 'email', '']),
+                'utm_medium': fake.random_element(elements=['cpc', 'social', 'email', 'organic', '']),
+                'utm_campaign': fake.random_element(elements=['summer_sale', 'new_products', 'brand_awareness', '']),
                 'metadata': {
-                    'screen_resolution': f"{random.randint(1024, 2560)}x{random.randint(768, 1440)}",
-                    'language': random.choice(['es', 'en', 'fr']),
-                    'timezone': random.choice(['America/Mexico_City', 'America/New_York', 'Europe/Madrid']),
+                    'language': fake.language_code(),
+                    'timezone': fake.timezone(),
+                    'screen_resolution': f"{fake.random_int(min=800, max=2560)}x{fake.random_int(min=600, max=1440)}"
                 }
             }
             
-            # Crear el objeto y luego actualizar la fecha
-            page_access = PageAccess.objects.create(**page_access_data)
-            page_access.created_at = created_at
-            page_access.save(update_fields=['created_at'])
+            # Agregar eventos de ecommerce aleatorios
+            if fake.boolean(chance_of_getting_true=30):  # 30% de probabilidad
+                ecommerce_events = ['product_view', 'add_to_cart', 'begin_checkout', 'purchase']
+                event_type = fake.random_element(elements=ecommerce_events)
+                
+                page_data['metadata']['event_type'] = event_type
+                page_data['metadata']['ecommerce_data'] = {
+                    'product_id': fake.uuid4() if event_type in ['product_view', 'add_to_cart'] else None,
+                    'product_name': fake.word() if event_type in ['product_view', 'add_to_cart'] else None,
+                    'quantity': fake.random_int(min=1, max=5) if event_type == 'add_to_cart' else None,
+                    'price': fake.random_int(min=100, max=5000) if event_type in ['product_view', 'add_to_cart'] else None,
+                    'order_id': fake.uuid4() if event_type == 'purchase' else None,
+                    'total': fake.random_int(min=500, max=10000) if event_type == 'purchase' else None
+                }
+            
+            # Crear el registro
+            PageAccess.objects.create(**page_data)
             
             total_created += 1
             

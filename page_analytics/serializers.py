@@ -75,6 +75,7 @@ class PageAnalyticsSummarySerializer(serializers.Serializer):
     top_sections = serializers.ListField()
     device_distribution = serializers.DictField()
     browser_distribution = serializers.DictField()
+    ecommerce_events = serializers.DictField(required=False)
 
 
 class PageAnalyticsTrendSerializer(serializers.Serializer):

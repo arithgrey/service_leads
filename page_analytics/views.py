@@ -30,21 +30,19 @@ class PageAccessViewSet(viewsets.ModelViewSet):
         """
         Obtener resumen de analytics
         """
-        # Parámetros de filtro
         days = int(request.query_params.get('days', 30))
         start_date = timezone.now() - timedelta(days=days)
         
-        # Filtrar datos por fecha
-        queryset = self.queryset.filter(created_at__gte=start_date)
+        queryset = self.queryset.filter(
+            created_at__gte=start_date
+        )
         
-        # Calcular métricas
+        # Métricas básicas
         total_page_views = queryset.count()
         unique_visitors = queryset.values('session_id').distinct().count()
-        
-        # Tiempo promedio en página
         avg_time = queryset.aggregate(avg_time=Avg('time_on_page'))['avg_time'] or 0
         
-        # Tasa de rebote (sesiones con una sola página vista)
+        # Calcular tasa de rebote
         total_sessions = queryset.values('session_id').distinct().count()
         bounce_sessions = queryset.values('session_id').annotate(
             page_count=Count('id')
@@ -71,6 +69,22 @@ class PageAccessViewSet(viewsets.ModelViewSet):
             count=Count('id')
         ).order_by('-count')
         
+        # Eventos de ecommerce
+        ecommerce_events = {}
+        
+        # Contar eventos específicos de ecommerce desde metadata
+        product_views = queryset.filter(metadata__has_key='event_type').filter(metadata__event_type='product_view').count()
+        add_to_cart = queryset.filter(metadata__has_key='event_type').filter(metadata__event_type='add_to_cart').count()
+        begin_checkout = queryset.filter(metadata__has_key='event_type').filter(metadata__event_type='begin_checkout').count()
+        purchases = queryset.filter(metadata__has_key='event_type').filter(metadata__event_type='purchase').count()
+        
+        ecommerce_events = {
+            'product_views': product_views,
+            'add_to_cart': add_to_cart,
+            'begin_checkout': begin_checkout,
+            'purchases': purchases
+        }
+        
         data = {
             'total_page_views': total_page_views,
             'unique_visitors': unique_visitors,
@@ -79,7 +93,8 @@ class PageAccessViewSet(viewsets.ModelViewSet):
             'top_pages': list(top_pages),
             'top_sections': list(top_sections),
             'device_distribution': {item['device_type']: item['count'] for item in device_distribution},
-            'browser_distribution': {item['browser']: item['count'] for item in browser_distribution}
+            'browser_distribution': {item['browser']: item['count'] for item in browser_distribution},
+            'ecommerce_events': ecommerce_events
         }
         
         serializer = PageAnalyticsSummarySerializer(data)
