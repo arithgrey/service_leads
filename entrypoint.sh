@@ -7,7 +7,7 @@ echo "Running makemigrations and migrate..."
 echo "Running makemigrations and migrate..."
 
 python manage.py makemigrations
-python manage.py makemigrations lead_type lead lead_search lead_metrics expose
+python manage.py makemigrations lead_type lead lead_search lead_metrics page_analytics expose
 python manage.py migrate
 # Inicia el servidor con watchmedo
 echo "Starting the server with watchmedo..."
